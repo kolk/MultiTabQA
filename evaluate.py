@@ -30,6 +30,8 @@ from utility import clean_query
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--dataset_name", type=str, help="name of dataset to evaluate on [atis_test, geo_test, spider_nq, spider_sql]")
+parser.add_argument("--pretrained_model_name", type=str, help="name of model to evaluate on")
+parser.add_argument("--batch_size", type=str, help="batch size")
 args = parser.parse_args()
 dataset = args.dataset_name
 
@@ -62,7 +64,7 @@ def get_correct_total_prediction(target_str,pred_str):
           "correct_columns":common_columns,
           "correct_cells":common_cells}
 
-batch_size = 2
+batch_size = args.batch_size
 model = AutoModelForSeq2SeqLM.from_pretrained(pretrained_model_name)
 use_cuda = True 
 device = torch.device("cuda")
@@ -75,7 +77,7 @@ if dataset.lower() == "spider_sql":
     print('Loading bart-base tokenized test dataset for Spider ')
     tokenizer = AutoTokenizer.from_pretrained("facebook/bart-base")
     config = AutoConfig.from_pretrained(pretrained_model_name)
-    test_dataset = load_from_disk("data/spider/preprocessed_valid.hf")
+    test_dataset = load_from_disk("data/spider/spider_sql_valid.hf")
     print(f"Evaluating on {len(test_dataset)} samples")
     test_processor = SpiderProcessor(test_dataset=test_dataset,
                                           batch_size=batch_size,
@@ -87,7 +89,7 @@ elif dataset.lower() == "spider_nq":
     print('Loading bart-base tokenized test dataset for Spider Natural Questions')
     tokenizer = AutoTokenizer.from_pretrained("facebook/bart-base")
     config = AutoConfig.from_pretrained(pretrained_model_name)
-    test_dataset = load_from_disk("data/spider/tokenized_spider_nq_valid_with_answer.hf")["train"]
+    test_dataset = load_from_disk("data/spider/tokenized_spider_nq_valid_with_answer.hf")
     print(f"Evaluating on {len(test_dataset)} samples")
     test_processor = SpiderProcessor(test_dataset=test_dataset,
                                           batch_size=batch_size,
@@ -99,7 +101,7 @@ elif dataset.lower() == "spider_nq":
 elif dataset.lower() in "atis_test":
     tokenizer = AutoTokenizer.from_pretrained("facebook/bart-base") 
     config = AutoConfig.from_pretrained(pretrained_model_name)
-    test_dataset = load_from_disk("data/atis/tokenized_atis_nq_test_with_answer.hf")['train']
+    test_dataset = load_from_disk("data/atis/atis_nq_test_with_answer.hf")
     test_processor = SpiderProcessor(test_dataset=test_dataset,
                                           batch_size=batch_size,
                                           decoder_max_length=1024,
@@ -109,7 +111,7 @@ elif dataset.lower() in "atis_test":
 elif dataset.lower() in "geo_test":
     tokenizer = AutoTokenizer.from_pretrained("facebook/bart-base") 
     config = AutoConfig.from_pretrained(pretrained_model_name)
-    test_dataset = load_from_disk("data/geo/tokenized_geo_nq_test_with_answer.hf")['train']
+    test_dataset = load_from_disk("data/geoquery/geoquery_nq_test_with_answer.hf"")
     test_processor = SpiderProcessor(test_dataset=test_dataset,
                                           batch_size=batch_size,
                                           decoder_max_length=1024,
