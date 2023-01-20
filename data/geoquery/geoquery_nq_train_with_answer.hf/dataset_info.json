@@ -1,0 +1,78 @@
+{
+  "builder_name": "json",
+  "citation": "",
+  "config_name": "default",
+  "dataset_size": 4561422,
+  "description": "",
+  "download_checksums": {
+    "/ivi/ilps/personal/vpal/tabularQA/data/geo/train.jsonl": {
+      "num_bytes": 5218491,
+      "checksum": "7b73cd75eef6812499bc3299d217d02b3b1a9a870ad6a17f4108d5edde2fc94d"
+    }
+  },
+  "download_size": 5218491,
+  "features": {
+    "question": {
+      "dtype": "string",
+      "id": null,
+      "_type": "Value"
+    },
+    "answer": {
+      "dtype": "string",
+      "id": null,
+      "_type": "Value"
+    },
+    "table_names": {
+      "feature": {
+        "dtype": "string",
+        "id": null,
+        "_type": "Value"
+      },
+      "length": -1,
+      "id": null,
+      "_type": "Sequence"
+    },
+    "tables": {
+      "feature": {
+        "dtype": "string",
+        "id": null,
+        "_type": "Value"
+      },
+      "length": -1,
+      "id": null,
+      "_type": "Sequence"
+    },
+    "source": {
+      "dtype": "string",
+      "id": null,
+      "_type": "Value"
+    },
+    "target": {
+      "dtype": "string",
+      "id": null,
+      "_type": "Value"
+    }
+  },
+  "homepage": "",
+  "license": "",
+  "post_processed": null,
+  "post_processing_size": null,
+  "size_in_bytes": 9779913,
+  "splits": {
+    "train": {
+      "name": "train",
+      "num_bytes": 4561422,
+      "num_examples": 530,
+      "dataset_name": "json"
+    }
+  },
+  "supervised_keys": null,
+  "task_templates": null,
+  "version": {
+    "version_str": "0.0.0",
+    "description": null,
+    "major": 0,
+    "minor": 0,
+    "patch": 0
+  }
+}
