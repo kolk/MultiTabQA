@@ -1,0 +1,78 @@
+{
+  "builder_name": "json",
+  "citation": "",
+  "config_name": "default",
+  "dataset_size": 410705,
+  "description": "",
+  "download_checksums": {
+    "/ivi/ilps/personal/vpal/tabularQA/data/atis/dev.jsonl": {
+      "num_bytes": 479534,
+      "checksum": "6151012dc43d6b6eef52e42a2db691af6247d9b78626ebd91885e9b5e2eb15ff"
+    }
+  },
+  "download_size": 479534,
+  "features": {
+    "question": {
+      "dtype": "string",
+      "id": null,
+      "_type": "Value"
+    },
+    "answer": {
+      "dtype": "string",
+      "id": null,
+      "_type": "Value"
+    },
+    "table_names": {
+      "feature": {
+        "dtype": "string",
+        "id": null,
+        "_type": "Value"
+      },
+      "length": -1,
+      "id": null,
+      "_type": "Sequence"
+    },
+    "tables": {
+      "feature": {
+        "dtype": "string",
+        "id": null,
+        "_type": "Value"
+      },
+      "length": -1,
+      "id": null,
+      "_type": "Sequence"
+    },
+    "source": {
+      "dtype": "string",
+      "id": null,
+      "_type": "Value"
+    },
+    "target": {
+      "dtype": "string",
+      "id": null,
+      "_type": "Value"
+    }
+  },
+  "homepage": "",
+  "license": "",
+  "post_processed": null,
+  "post_processing_size": null,
+  "size_in_bytes": 890239,
+  "splits": {
+    "train": {
+      "name": "train",
+      "num_bytes": 410705,
+      "num_examples": 45,
+      "dataset_name": "json"
+    }
+  },
+  "supervised_keys": null,
+  "task_templates": null,
+  "version": {
+    "version_str": "0.0.0",
+    "description": null,
+    "major": 0,
+    "minor": 0,
+    "patch": 0
+  }
+}
