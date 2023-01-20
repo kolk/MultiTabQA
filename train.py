@@ -102,21 +102,21 @@ config = AutoConfig.from_pretrained(args.pretrained_model_name)
 def get_dataset(dataset_name):
     # stage 2
     if dataset_name in "spider_sql":
-        train_set = load_from_disk("data/raw_data/spider/sql/spider_sql_train.hf")
-        valid_set = load_from_disk("data/raw_data/spider/sql/spider_sql_valid.hf")
+        train_set = load_from_disk("data/spider/sql/spider_sql_train.hf")
+        valid_set = load_from_disk("data/spider/sql/spider_sql_valid.hf")
         test_set = None
     # Stage 1
     elif dataset_name == "tapex_pretraining":
         print("Processing Tapex Pretrainng dataset ...")
-        train_set = load_from_disk("data/raw_data/tapex_pretraining/tapex_pretraining_train.hf")
-        valid_set = load_from_disk("data/raw_data/tapex_pretraining/tapex_pretraining_valid.hf")
+        train_set = load_from_disk("data/tapex_pretraining/tapex_pretraining_train.hf")
+        valid_set = load_from_disk("data/tapex_pretraining/tapex_pretraining_valid.hf")
         test_set = None
     # stage 2 + 3
     elif dataset_name == "multitable_pretraining":
         print("Processing MultiTable Pretraining dataset ...")
         valid_set = load_from_disk("data/raw_data/spider/sql/spider_sql_valid.hf")
-        synthetic_train_set = load_from_disk("data/raw_data/pretraining_synthetic_dataset")
-        spider_train_set = load_from_disk("data/raw_data/spider/sql/spider_sql_train.hf")
+        synthetic_train_set = load_from_disk("data/pretraining_synthetic_dataset")
+        spider_train_set = load_from_disk("data/spider/sql/spider_sql_train.hf")
         train_set = concatenate_datasets([synthetic_train_set, spider_train_set])
         train_set = train_set.shuffle(seed=args.seed)
         test_set = None
@@ -124,24 +124,24 @@ def get_dataset(dataset_name):
     # spider natural question fine-tuning dataset
     elif dataset_name == "spider_nq":
         print("Loading Spider natural questions tokenized with bart-base")
-        train_set = load_from_disk("data/raw_data/spider/natural_questions/spider_nq_train_with_answer.hf")
-        valid_set = load_from_disk("data/raw_data/spider/natural_questions/spider_nq_valid_with_answer.hf")
+        train_set = load_from_disk("data/spider/natural_questions/spider_nq_train_with_answer.hf")
+        valid_set = load_from_disk("data/spider/natural_questions/spider_nq_valid_with_answer.hf")
         train_set = valid_set
         test_set = None
         print(f"Training with {len(train_set)} samples, evaluating with {len(valid_set)} samples")
     # atis natural question finetuning dataset
     elif dataset_name == "atis":
         print("Loading Atis subset natural questions tokenized with bart-base")
-        train_set = load_from_disk("data/raw_data/atis/atis_nq_train_with_answer.hf")
-        valid_set = load_from_disk("data/raw_data/atis/atis_nq_dev_with_answer.hf")
-        test_set = load_from_disk("data/raw_data/atis/atis_nq_test_with_answer.hf")
+        train_set = load_from_disk("data/atis/atis_nq_train_with_answer.hf")
+        valid_set = load_from_disk("data/atis/atis_nq_dev_with_answer.hf")
+        test_set = load_from_disk("data/atis/atis_nq_test_with_answer.hf")
         print(f"Training with {len(train_set)} samples, evaluating with {len(valid_set)} samples")
     # geoquery natural question finetuning dataset
     elif dataset_name == "geoquery":
         print("Loading Geo natural questions tokenized with bart-base")
-        train_set = load_from_disk("data/raw_data/geoquery/geoquery_nq_train_with_answer.hf")
-        valid_set = load_from_disk("data/raw_data/geoquery/geoquery_nq_dev_with_answer.hf")
-        test_set = load_from_disk("data/raw_data/geoquery/geoquery_nq_test_with_answer.hf")
+        train_set = load_from_disk("data/geoquery/geoquery_nq_train_with_answer.hf")
+        valid_set = load_from_disk("data/geoquery/geoquery_nq_dev_with_answer.hf")
+        test_set = load_from_disk("data/geoquery/geoquery_nq_test_with_answer.hf")
         print(f"Training with {len(train_set)} samples, evaluating with {len(valid_set)} samples")
     train_set = train_set.map(tokenize_sample)
     valid_set = valid_set.map(tokenize_sample)
