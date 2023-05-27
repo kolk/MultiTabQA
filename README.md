@@ -1,15 +1,23 @@
 # MultiTabQA: Generating Tabular Answers for Multi-Table Question Answering
+Details of dataset generation and results can be found in our [paper](https://arxiv.org/abs/2305.12820).
 
 Finetuning datasets present in data directory:
 
 Datasets present in data directory:
 1. geoquery: Natural questions, context tables, and target table of GeoQuery for multi-table QA
 2. atis:  Natural questions, context tables, and target table  of Atis for multi-table QA
-3. spider: Natural questions, context tables, and target table  of spider for multi-table QA
+3. data.txt: contains url to download all data. The zip file contains Tapex single-table pre-training data, Multi-Table pre-training data, spider dataset where each sample is comprised of the natural question/SQL query, context table/(s), and target table  for multi-table QA.
 
 + **keys in datasets**:  
-    + 'source': flattened input sequecne comprising of natural question and context input tables as concatenated string
+    + 'source': flattened input sequence comprising of natural question and context input tables as concatenated string
     + 'target': flattened target table
+    
+Loading the Spider dataset:
+ ```
+ from datasets import load_from_disk
+ spider_natural_questions_data = load_from_disk(f"data/spider/tokenized_spider_nq_train_with_answer.hf")
+ spider_sql_query_data = load_from_disk(f"data/spider/tokenized_spider_sql_train.hf")
+ ```
 
 Arguments for pre-training:
 ```
