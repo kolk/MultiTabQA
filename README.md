@@ -42,3 +42,17 @@ python evaluate.py --batch_size 2 \
                    --pretrained_model_name "experiments/tapex_base_finetuning_on_spiderNQ" \
                    --dataset_name "spider_nq"
 ```
+
+**Citation**
+
+Please cite our work if you use our code or dataset:
+```
+@misc{pal2023multitabqa,
+      title={MultiTabQA: Generating Tabular Answers for Multi-Table Question Answering}, 
+      author={Vaishali Pal and Andrew Yates and Evangelos Kanoulas and Maarten de Rijke},
+      year={2023},
+      eprint={2305.12820},
+      archivePrefix={arXiv},
+      primaryClass={cs.CL}
+}
+```
