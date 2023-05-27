@@ -1,4 +1,8 @@
 # MultiTabQA: Generating Tabular Answers for Multi-Table Question Answering
+
+
+![Main Diagram](images/MultiTabQA_main_diagram.png)
+
 Details of dataset generation and results can be found in our [paper](https://arxiv.org/abs/2305.12820).
 
 Finetuning datasets present in data directory:
@@ -18,7 +22,24 @@ Loading the Spider dataset:
  spider_natural_questions_data = load_from_disk(f"data/spider/tokenized_spider_nq_train_with_answer.hf")
  spider_sql_query_data = load_from_disk(f"data/spider/tokenized_spider_sql_train.hf")
  ```
+**Model Architecture**
 
+![Architecture](images/architecture.png)
+We train a sequence-to-sequence model with backbone architecute `bart-base`. The input sequence is the concatenated question, context tables and output is the flattened answer table.
+
+
+**Training Process**
+
+![Training Process](images/MultiStageTraining.png)
+
++ Pre-training checkpoints can be found at:
+    + [Stage 1 + Stage 2 + Stage 3 (Multi-Table pre-training)](https://drive.google.com/drive/folders/1zLKWnKlvLOQ8uSQSXG2dMlCOtaqbcjHu?usp=share_link)
+
++ Fine-tuning Natural Question model checkpoints can be found at:
+    + [Spider](https://drive.google.com/drive/folders/19Go6B31PJqNwUh7K5bCR5SYAUmrvsRTk?usp=share_link)
+    + [Atis](https://drive.google.com/drive/folders/1rBz10T2NVjxI2F5oHfelQYuW9fRSeFNq?usp=share_link)
+    + [GeoQuery](https://drive.google.com/drive/folders/1np-aVg1R0eWmm9K_sD7HahlcicmtTNCU?usp=share_link)
+    
 Arguments for pre-training:
 ```
 python train.py --dataset_name "multitab_pretraining" 
@@ -50,6 +71,16 @@ python evaluate.py --batch_size 2 \
                    --pretrained_model_name "experiments/tapex_base_finetuning_on_spiderNQ" \
                    --dataset_name "spider_nq"
 ```
+**Results**
+
+Dataset | Model  | Table EM | Row EM (P) |  Row EM (R) |  Row EM (F1) | Column EM (P) |  Column EM (R) |  Column EM (F1)  | Cell EM (P) | Cell EM (R) | Cell EM (F1) 
+--------| ------- | ------------| -----------          | -------            | ------------        | -------------           |-----------             | ----------              | --------------        | ---------------    |------------
+Spider |tapex-base |18.99 | 17.28 |19.83 | 18.27 | 19.75 | 19.39 | 19.57 | 23.15 | 27.71 | 25.03
+| | MultiTabQA | **25.19*** |**22.88†** | **24.64*** | **23.70*** | **26.86*** | **26.76*** | **26.81*** | **28.07†** | **31.23*** | **29.55***
+GeoQ |tapex-base | 39.84 |22.43 | 30.74 | 24.89 | 39.48 | 39.76 | 39.62 | 21.98 | 30.88 | 24.67
+| | MultiTabQA | **52.22*** | **72.39*** | **46.90*** | **41.38*** | **52.10*** | **52.22*** | **52.16*** | **37.16†** | **46.92*** | **41.33***
+Atis |tapex-base | 72.20 | 57.07† | 57.69 | 55.08 | 72.20† | 72.20 | 72.20 | 57.07† | 57.69 | 54.48
+| | MultiTabQA | **73.88†** | 38.29 | **92.19*** | 54.36 | 69.55 | **75.24†** | **72.29** | 38.16 | **92.56*** | 54.16
 
 **Citation**
 
