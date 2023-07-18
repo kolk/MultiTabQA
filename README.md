@@ -33,12 +33,12 @@ We train a sequence-to-sequence model with backbone architecute `bart-base`. The
 ![Training Process](images/MultiStageTraining.png)
 
 + Pre-training checkpoints can be found at:
-    + [Stage 1 + Stage 2 + Stage 3 (Multi-Table pre-training)](https://drive.google.com/drive/folders/1zLKWnKlvLOQ8uSQSXG2dMlCOtaqbcjHu?usp=share_link)
+    + [Stage 1 + Stage 2 + Stage 3 (Multi-Table pre-training)](https://huggingface.co/vaishali/multitabqa-base-sql)
 
 + Fine-tuning Natural Question model checkpoints can be found at:
-    + [Spider](https://drive.google.com/drive/folders/19Go6B31PJqNwUh7K5bCR5SYAUmrvsRTk?usp=share_link)
-    + [Atis](https://drive.google.com/drive/folders/1rBz10T2NVjxI2F5oHfelQYuW9fRSeFNq?usp=share_link)
-    + [GeoQuery](https://drive.google.com/drive/folders/1np-aVg1R0eWmm9K_sD7HahlcicmtTNCU?usp=share_link)
+    + [Spider](https://huggingface.co/vaishali/multitabqa-base/)
+    + [Atis](vaishali/multitabqa-base-atis)
+    + [GeoQuery](https://huggingface.co/vaishali/multitabqa-base-geoquery)
     
 Arguments for pre-training:
 ```
