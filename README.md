@@ -27,6 +27,8 @@ Loading the Spider dataset:
 ![Architecture](images/architecture.png)
 We train a sequence-to-sequence model with backbone architecute `bart-base`. The input sequence is the concatenated question, context tables and output is the flattened answer table.
 
+**Datasets**
+The datasets for pretraining and finetuning can be found in the data directory
 
 **Training Process**
 
@@ -37,7 +39,7 @@ We train a sequence-to-sequence model with backbone architecute `bart-base`. The
 
 + Fine-tuning Natural Question model checkpoints can be found at:
     + [Spider](https://huggingface.co/vaishali/multitabqa-base/)
-    + [Atis](vaishali/multitabqa-base-atis)
+    + [Atis](https://huggingface.co/vaishali/multitabqa-base-atis)
     + [GeoQuery](https://huggingface.co/vaishali/multitabqa-base-geoquery)
     
 Arguments for pre-training:
