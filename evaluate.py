@@ -34,6 +34,7 @@ parser.add_argument("--pretrained_model_name", type=str, help="name of model to 
 parser.add_argument("--batch_size", type=str, help="batch size")
 args = parser.parse_args()
 dataset = args.dataset_name
+pretrained_model_name = args.pretrained_model_name
 
 def get_rows_columns_cells(line):
   line=line.lower()
