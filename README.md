@@ -19,7 +19,7 @@ Datasets present in data directory:
 Loading the Spider dataset:
  ```
  from datasets import load_from_disk
- spider_natural_questions_data = load_from_disk(f"data/spider/tokenized_spider_nq_train_with_answer.hf")
+ spider_natural_questions_data = load_from_disk(f"data/spider/tokenized_spider_nq_train_with_answer.hf")["train"]
  spider_sql_query_data = load_from_disk(f"data/spider/tokenized_spider_sql_train.hf")
  ```
 **Model Architecture**
@@ -42,9 +42,9 @@ The datasets for pretraining and finetuning can be found in the data directory
     + [Atis](https://huggingface.co/vaishali/multitabqa-base-atis)
     + [GeoQuery](https://huggingface.co/vaishali/multitabqa-base-geoquery)
     
-Arguments for pre-training:
+Arguments for pre-training (Stage 1):
 ```
-python train.py --dataset_name "multitab_pretraining" 
+python train.py --dataset_name "tapex_pretraining" 
                 --pretrained_model_name "microsoft/tapex-base" \
                 --learning_rate 1e-4 --train_batch_size 4 --eval_batch_size 4 \
                 --gradient_accumulation_steps 64 --eval_gradient_accumulation 64 \
@@ -54,11 +54,22 @@ python train.py --dataset_name "multitab_pretraining"
                 --output_dir "experiments/tapex_base_pretraining"
 ```
 
+Arguments for pre-training (Stage 2+3):
+```
+python train.py --dataset_name "multitab_pretraining" 
+                --pretrained_model_name "experiments/tapex_base_pretraining" \
+                --learning_rate 1e-4 --train_batch_size 4 --eval_batch_size 4 \
+                --gradient_accumulation_steps 64 --eval_gradient_accumulation 64 \
+                --num_train_epochs 60 --use_multiprocessing False \
+                --num_workers 2 --decoder_max_length 1024 \
+                --local_rank -1  --seed 47 \ 
+                --output_dir "experiments/multitabqa_base_sql"
+```
 
 Arguments for fine-tuning:
 ```
 python train.py --dataset_name "spider_nq" 
-                --pretrained_model_name "experiments/tapex_base_pretraining" \
+                --pretrained_model_name "vaishali/multitabqa-base-sql" \
                 --learning_rate 1e-4 --train_batch_size 4 --eval_batch_size 4 \
                 --gradient_accumulation_steps 64 --eval_gradient_accumulation 64 \
                 --num_train_epochs 60 --use_multiprocessing False \
@@ -67,12 +78,20 @@ python train.py --dataset_name "spider_nq"
                 --output_dir "experiments/tapex_base_finetuning_on_spiderNQ"
 ```
 
-To evaluate:
+To evaluate model finetuned on Spider natural langauge questions dataset:
 ```
-python evaluate.py --batch_size 2 \
-                   --pretrained_model_name "experiments/tapex_base_finetuning_on_spiderNQ" \
+python evaluate_multitabqa.py --batch_size 2 \
+                   --pretrained_model_name "vaishali/multitabqa-base" \
                    --dataset_name "spider_nq"
 ```
+
+To evaluate model finetuned on GeoQuery natural langauge questions dataset:
+```
+python evaluate_multitabqa.py --batch_size 2 \
+                   --pretrained_model_name "vaishali/multitabqa-base-geoquery" \
+                   --dataset_name "geo_test"
+```
+
 **Results**
 
 Dataset | Model  | Table EM | Row EM (P) |  Row EM (R) |  Row EM (F1) | Column EM (P) |  Column EM (R) |  Column EM (F1)  | Cell EM (P) | Cell EM (R) | Cell EM (F1) 
