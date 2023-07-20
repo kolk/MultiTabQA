@@ -57,7 +57,7 @@ tokenizer = AutoTokenizer.from_pretrained("facebook/bart-base")
 if dataset.lower() == "spider_sql":
     print('Loading bart-base tokenized test dataset for Spider ')
     config = AutoConfig.from_pretrained(pretrained_model_name)
-    test_dataset = load_from_disk("/Users/prateek/Downloads/data/spider/tokenized_spider_sql_valid.hf")
+    test_dataset = load_from_disk("data/spider/tokenized_spider_sql_valid.hf")
     print(f"Evaluating on {len(test_dataset)} samples")
     test_processor = MultiTabQAProcessor(test_dataset=test_dataset,
                                           batch_size=batch_size,
@@ -69,7 +69,7 @@ if dataset.lower() == "spider_sql":
 elif dataset.lower() == "spider_nq":
     print('Loading bart-base tokenized test dataset for Spider Natural Questions')
     config = AutoConfig.from_pretrained(pretrained_model_name)
-    test_dataset = load_from_disk("/Users/prateek/Downloads/data/spider/tokenized_spider_nq_valid_with_answer.hf")['train']
+    test_dataset = load_from_disk("data/spider/tokenized_spider_nq_valid_with_answer.hf")['train']
     print(f"Evaluating on {len(test_dataset)} samples")
     test_processor = MultiTabQAProcessor(test_dataset=test_dataset,
                                           batch_size=batch_size,
@@ -81,7 +81,7 @@ elif dataset.lower() == "spider_nq":
 
 elif dataset.lower() in "atis_test":
     config = AutoConfig.from_pretrained(pretrained_model_name)
-    test_dataset = load_from_disk("/Users/prateek/Downloads/data/atis/tokenized_atis_nq_test_with_answer.hf")['train']
+    test_dataset = load_from_disk("data/atis/tokenized_atis_nq_test_with_answer.hf")['train']
     test_processor = MultiTabQAProcessor(test_dataset=test_dataset,
                                           batch_size=batch_size,
                                           decoder_max_length=1024,
@@ -91,7 +91,7 @@ elif dataset.lower() in "atis_test":
                                           device=device)
 elif dataset.lower() in "geo_test":
     config = AutoConfig.from_pretrained(pretrained_model_name)
-    test_dataset = load_from_disk("/Users/prateek/Downloads/data/geoquery/tokenized_geo_nq_test_with_answer.hf")['train']
+    test_dataset = load_from_disk("data/geoQuery/tokenized_geo_nq_test_with_answer.hf")['train']
     test_processor = MultiTabQAProcessor(test_dataset=test_dataset,
                                           batch_size=batch_size,
                                           decoder_max_length=1024,
@@ -117,7 +117,7 @@ aggregator = scoring.BootstrapAggregator()
 aggregator_em = scoring.BootstrapAggregator()
 print('Starting Inference')
 predictions, references =[],[]
-for i, batch in enumerate(test_processor.test_generator):
+for batch in test_processor.test_generator:
     batch_sz = len(batch["input_ids"])
     question = tokenizer.batch_decode(batch["input_ids"].to(device), skip_special_tokens=True, clean_up_tokenizatimodon_spaces=False)
     prediction = model.generate(batch["input_ids"].to(device), decoder_start_token_id=config.decoder_start_token_id,

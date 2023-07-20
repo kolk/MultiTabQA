@@ -72,7 +72,6 @@ def tokenize_sample(sample):
             max_length=args.decoder_max_length,
             truncation='longest_first',
         )
-
     decoder_input_ids = shift_tokens_right(labels['input_ids'], tokenizer.pad_token_id,
                                            config.decoder_start_token_id)
     return {"input_ids": input_encoding["input_ids"],
@@ -80,12 +79,10 @@ def tokenize_sample(sample):
             "labels": labels['input_ids'],
             "decoder_input_ids": decoder_input_ids}
 
-
 args = parser.parse_args()
-use_cuda = False if args.cpu else True
-device = torch.device("cuda" if use_cuda else "cpu")
+use_cuda = not args.cpu
+device = torch.device("cuda" if use_cuda and torch.cuda.is_available() else "cpu")
 seed = args.seed
-
 
 def model_init():
     set_seed(args.seed)
@@ -94,24 +91,22 @@ def model_init():
     model = model.to(device)
     return model
 
-
 tokenizer = AutoTokenizer.from_pretrained("facebook/bart-base")
 config = AutoConfig.from_pretrained(args.pretrained_model_name)
 
-
 def get_dataset(dataset_name):
-    # stage 2
+    # pre-training stage 2
     if dataset_name in "spider_sql":
-        train_set = load_from_disk("data/spider/sql/spider_sql_train.hf")
-        valid_set = load_from_disk("data/spider/sql/spider_sql_valid.hf")
+        train_set = load_from_disk("data/spider/sql/tokenized_spider_sql_train.hf")
+        valid_set = load_from_disk("data/spider/sql/tokenized_spider_sql_valid.hf")
         test_set = None
-    # Stage 1
+    # pre-training stage 1
     elif dataset_name == "tapex_pretraining":
         print("Processing Tapex Pretrainng dataset ...")
-        train_set = load_from_disk("data/tapex_pretraining/tapex_pretraining_train.hf")
-        valid_set = load_from_disk("data/tapex_pretraining/tapex_pretraining_valid.hf")
+        train_set =  concatenate_datasets([load_from_disk(path) for path in glob.glob("data/tapex_pretraining/preprocessed_train_*.hf")])
+        valid_set = load_from_disk("data/tapex_pretraining/preprocessed_valid.hf")
         test_set = None
-    # stage 2 + 3
+    # pre-trainng stage 2 + 3
     elif dataset_name == "multitable_pretraining":
         print("Processing MultiTable Pretraining dataset ...")
         valid_set = load_from_disk("data/raw_data/spider/sql/spider_sql_valid.hf")
@@ -121,27 +116,26 @@ def get_dataset(dataset_name):
         train_set = train_set.shuffle(seed=args.seed)
         test_set = None
         print(f"Training with {len(train_set)} samples")
-    # spider natural question fine-tuning dataset
+    # spider natural language question fine-tuning dataset
     elif dataset_name == "spider_nq":
         print("Loading Spider natural questions tokenized with bart-base")
-        train_set = load_from_disk("data/spider/natural_questions/spider_nq_train_with_answer.hf")
-        valid_set = load_from_disk("data/spider/natural_questions/spider_nq_valid_with_answer.hf")
-        train_set = valid_set
+        train_set = load_from_disk("data/spider/tokenized_spider_nq_train_with_answer.hf")["train"]
+        valid_set = load_from_disk("data/spider/tokenized_spider_nq_valid_with_answer.hf")["train"]
         test_set = None
         print(f"Training with {len(train_set)} samples, evaluating with {len(valid_set)} samples")
-    # atis natural question finetuning dataset
+    # atis natural language question finetuning dataset
     elif dataset_name == "atis":
         print("Loading Atis subset natural questions tokenized with bart-base")
-        train_set = load_from_disk("data/atis/atis_nq_train_with_answer.hf")
-        valid_set = load_from_disk("data/atis/atis_nq_dev_with_answer.hf")
-        test_set = load_from_disk("data/atis/atis_nq_test_with_answer.hf")
+        train_set = load_from_disk("data/atis/tokenized_atis_nq_train_with_answer.hf")["train"]
+        valid_set = load_from_disk("data/atis/tokenized_atis_nq_dev_with_answer.hf")["train"]
+        test_set = load_from_disk("data/atis/tokenized_atis_nq_test_with_answer.hf")["train"]
         print(f"Training with {len(train_set)} samples, evaluating with {len(valid_set)} samples")
-    # geoquery natural question finetuning dataset
+    # geoquery natural language question finetuning dataset
     elif dataset_name == "geoquery":
         print("Loading Geo natural questions tokenized with bart-base")
-        train_set = load_from_disk("data/geoquery/geoquery_nq_train_with_answer.hf")
-        valid_set = load_from_disk("data/geoquery/geoquery_nq_dev_with_answer.hf")
-        test_set = load_from_disk("data/geoquery/geoquery_nq_test_with_answer.hf")
+        train_set = load_from_disk("data/geoQuery/geoquery_nq_train_with_answer.hf")["train"]
+        valid_set = load_from_disk("data/geoQuery/geoquery_nq_dev_with_answer.hf")["train"]
+        test_set = load_from_disk("data/geoQuery/geoquery_nq_test_with_answer.hf")["train"]
         print(f"Training with {len(train_set)} samples, evaluating with {len(valid_set)} samples")
     train_set = train_set.map(tokenize_sample)
     valid_set = valid_set.map(tokenize_sample)

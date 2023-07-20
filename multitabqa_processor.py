@@ -49,12 +49,12 @@ class IndexedRowTableLinearize:
         row_str = ""
         row_cell_values = []
         for cell_value in row:
-            if isinstance(cell_value, int) or isinstance(cell_value, float):
+            if isinstance(cell_value, (int, float)):
                 row_cell_values.append(str(cell_value))
             else:
                 row_cell_values.append(cell_value)
         row_str += " | ".join(row_cell_values)
-        return "row " + str(row_index) + " : " + row_str
+        return f"row {row_index} : {row_str}"
 
 
 class MultiTabQAProcessor:
@@ -128,10 +128,9 @@ class MultiTabQAProcessor:
             logger.warning("You provide nothing to query with respect to the table.")
         # step 4: concatenate query with linear_table
         query = query.replace("<>", "!=")
-        separator = " " if query and len(linear_tables) > 0 else ""
+        separator = " " if query and linear_tables else ""
         tables_with_separator = " ".join(linear_tables)
-        joint_input = (query + separator + tables_with_separator) if query else tables_with_separator
-        return joint_input
+        return (query + separator + tables_with_separator) if query else tables_with_separator
 
     def clean_table(self, table):
         table.fillna("", inplace=True)
@@ -154,7 +153,7 @@ class MultiTabQAProcessor:
             # check all values of table and map them to str
             table = table.applymap(
                 lambda x: pd.to_datetime(x, infer_datetime_format=True).strftime('%Y-%m-%d %H:%M:%S')
-                if isinstance(x, pd.Timestamp) or isinstance(x, np.datetime64) else x)
+                if isinstance(x, (pd.Timestamp, np.datetime64)) else x)
             table = table.applymap(lambda x: str(x))
             table.columns = table.columns.astype(str)
         return table
@@ -171,9 +170,17 @@ class MultiTabQAProcessor:
              "answer": sample["answer"]})
 
     def preprocess_sample(self, sample):
+        """
+        takes as input a dictionary of format: {"tables" => input context tables: List[pd.DataFrame, json],
+                                                "table_names" => input table names: List[str],
+                                                "query"/"question" => user query/question: str,
+                                                "answer" => output table: pd.DataFrame, json}
+        and returns a dictionary of format: {"source": input string to be tokenized and passed to the model. Format: query + linearized table_1 + linearized table_2 + ...,
+                                            "target": output label of decoder. Format: linearized answer table }
+        """
         tables = sample["tables"]
         table_names = sample["table_names"]
-        query = sample["query"]
+        query = sample["question"] if "question" in sample.keys() else sample["query"]
         answer = sample["answer"]
         do_lower_case = False
         if answer is None:
