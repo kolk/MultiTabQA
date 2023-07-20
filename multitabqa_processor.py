@@ -1,17 +1,14 @@
 import os
-import json
+import torch
 import sqlite3
 import pandas as pd
 import numpy as np
-from tqdm import tqdm
-from multiprocessing import Pool
-import torch
-from torch.utils.data import Dataset, DataLoader, RandomSampler, SequentialSampler
+from collections import defaultdict
+from torch.utils.data import Dataset, DataLoader, SequentialSampler
 from transformers import AutoConfig, AutoTokenizer
-from transformers.models.bart.modeling_bart import shift_tokens_right
-from datasets import load_dataset, load_from_disk
-from typing import Dict, List, Optional, Tuple, Union
-
+from typing import Dict, List
+import logging as logger
+from utility import clean_query
 
 class IndexedRowTableLinearize:
     """
@@ -70,6 +67,7 @@ class MultiTabQAProcessor:
                  decoder_start_token_id=0,
                  decoder_max_length: int = 1024,
                  is_test: bool = False,
+                 device=torch.device("cpu"),
                  **params):
         """
         Generated tokenized batches for training, evaluation and testing of seq2seq task
@@ -84,6 +82,7 @@ class MultiTabQAProcessor:
         self.tokenizer = tokenizer
         self.config = AutoConfig.from_pretrained(self.tokenizer.name_or_path)
         self.decoder_max_length = decoder_max_length
+        self.device=device
         self.table_linearize = IndexedRowTableLinearize()
 
         if not is_test:
@@ -96,6 +95,7 @@ class MultiTabQAProcessor:
                                              sampler=SequentialSampler(data_source=self.test_dataset),
                                              collate_fn=self.collate_tokenized,
                                              drop_last=True,
+                                             pin_memory=True,
                                              **params)
     def prepare_table_query(
             self,
@@ -106,12 +106,6 @@ class MultiTabQAProcessor:
         """
         This method can be used to linearize a table and add a corresponding query.
         """
-        # num_tables = len(tables)
-        # lens_tables = [len(table) for table in tables]
-        # total_length = sum(lens_tables)
-        # calculate the tokens of header, special tokens will only be pre-prepended into question
-        # query_tokens = tokenizer(query)#, add_special_tokens=True)
-        # used_token_length = len(query_tokens)
         linear_tables = []
         assert len(tables) == len(table_names), "Number of table names and tables must be same!"
         for table, table_name in zip(tables, table_names):
@@ -168,12 +162,12 @@ class MultiTabQAProcessor:
     def flatten_dataset(self, sample):
         if "tables" not in sample.keys() and "db_name" in sample.keys():
             database_path = 'data/database'
-            con = sqlite3.connect(os.path.join(database_path, line["db_name"], line["db_name"] + '.sqlite'))
+            con = sqlite3.connect(os.path.join(database_path, sample["db_name"], sample["db_name"] + '.sqlite'))
             encoding = "latin1"
             con.text_factory = lambda x: str(x, encoding)
-            sample["tables"] = [pd.read_sql_query(f'SELECT * FROM {table_name}', con) for table_name in line["tables"]]
+            sample["tables"] = [pd.read_sql_query(f'SELECT * FROM {table_name}', con) for table_name in sample["tables"]]
         return self.preprocess_sample(
-            {"query": saple["question"], "table_names": sample["table_names"], "tables": sample["tables"],
+            {"query": sample["question"], "table_names": sample["table_names"], "tables": sample["tables"],
              "answer": sample["answer"]})
 
     def preprocess_sample(self, sample):
@@ -184,18 +178,18 @@ class MultiTabQAProcessor:
         do_lower_case = False
         if answer is None:
             logger.warning(f"Answer None!!")
-        tables = [clean_table(table) if isinstance(table, pd.core.frame.DataFrame) else clean_table(
+        tables = [self.clean_table(table) if isinstance(table, pd.core.frame.DataFrame) else self.clean_table(
             pd.read_json(table, orient='split')) for table in tables]
-        text = prepare_table_query(
+        text = self.prepare_table_query(
             tables, table_names, query, answer, truncation_strategy=None)  # "drop_rows_to_fit")
-        answer = clean_table(answer) if isinstance(answer, pd.core.frame.DataFrame) else clean_table(
+        answer = self.clean_table(answer) if isinstance(answer, pd.core.frame.DataFrame) else self.clean_table(
             pd.read_json(answer, orient='split'))
         if not answer.empty:
             # step 1: create table dictionary
             table_content = {"name": None, "header": list(answer.columns),
                              "rows": [list(row.values) for i, row in answer.iterrows()]}
             # step 2: linearize table
-            answer_text = table_linearize.process_table(table_content)
+            answer_text = self.table_linearize.process_table(table_content)
         else:
             answer_text = ""
             if answer_text == "":
@@ -220,8 +214,8 @@ class MultiTabQAProcessor:
             batch_labels.append(torch.tensor(sample['labels']))
             batch_decoder_input_ids.append(torch.tensor(sample["decoder_input_ids"]))
 
-        return {"input_ids": torch.stack(batch_input_ids).squeeze(),
-                "attention_mask": torch.stack(batch_attention_mask).squeeze(),
-                "labels": torch.stack(batch_labels).squeeze(),
+        return {"input_ids": torch.stack(batch_input_ids).squeeze().to(self.device),
+                "attention_mask": torch.stack(batch_attention_mask).squeeze().to(self.device),
+                "labels": torch.stack(batch_labels).squeeze().to(self.device),
                 "decoder_input_ids": torch.stack(
-                    batch_decoder_input_ids).squeeze()}
+                    batch_decoder_input_ids).squeeze().to(self.device)}

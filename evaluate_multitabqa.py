@@ -1,37 +1,18 @@
-from rouge_score import rouge_scorer, scoring
-from evaluate import load as evaluate_load
 import re
-from collections import Counter
-from datasets import load_metric
-import os
-import json
-import pandas as pd
-import numpy as np
-from tqdm import tqdm
-from multiprocessing import Pool
-import torch
-from torch.utils.data import Dataset, DataLoader, RandomSampler, SequentialSampler
-from transformers import AutoConfig, AutoTokenizer
-from transformers.models.bart.modeling_bart import shift_tokens_right
-from datasets import load_dataset, load_from_disk
-from typing import Dict, List, Optional, Tuple, Union
-from transformers import AutoTokenizer, AutoConfig
-from transformers.models.auto import AutoModelForSeq2SeqLM
-import glob
-from collections import defaultdict
 import argparse
 import torch
-from torch.utils.data import random_split
-from datasets import load_from_disk
+from collections import Counter, defaultdict
 from rouge_score import rouge_scorer, scoring
+from datasets import load_from_disk
 from evaluate import load as evaluate_load
-from SpiderDataset import SpiderDataset, SpiderProcessor
-from utility import clean_query
+from transformers import AutoConfig, AutoTokenizer
+from transformers.models.auto import AutoModelForSeq2SeqLM
+from multitabqa_processor import MultiTabQAProcessor
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--dataset_name", type=str, help="name of dataset to evaluate on [atis_test, geo_test, spider_nq, spider_sql]")
-parser.add_argument("--pretrained_model_name", type=str, help="name of model to evaluate on")
-parser.add_argument("--batch_size", type=str, help="batch size")
+parser.add_argument("--dataset_name", type=str, help="name of dataset to evaluate on [atis_test, geo_test, spider_nq, spider_sql]", default="spider_nq")
+parser.add_argument("--pretrained_model_name", type=str, default="vaishali/multitabqa-base", help="name of model to evaluate on ['vaishali/multitabqa-base', 'vaishali/multitabqa-base-atis', 'vaishali/multitabqa-base-geoquery', 'vaishali/multitabqa-base-sql']")
+parser.add_argument("--batch_size", type=int, help="batch size", default=4)
 args = parser.parse_args()
 dataset = args.dataset_name
 pretrained_model_name = args.pretrained_model_name
@@ -67,58 +48,57 @@ def get_correct_total_prediction(target_str,pred_str):
 
 batch_size = args.batch_size
 model = AutoModelForSeq2SeqLM.from_pretrained(pretrained_model_name)
-use_cuda = True 
-device = torch.device("cuda")
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model.to(device).eval()
 outputs = defaultdict(list)
 config = AutoConfig.from_pretrained(pretrained_model_name)
-
+tokenizer = AutoTokenizer.from_pretrained("facebook/bart-base")
 
 if dataset.lower() == "spider_sql":
     print('Loading bart-base tokenized test dataset for Spider ')
-    tokenizer = AutoTokenizer.from_pretrained("facebook/bart-base")
     config = AutoConfig.from_pretrained(pretrained_model_name)
-    test_dataset = load_from_disk("data/spider/spider_sql_valid.hf")
+    test_dataset = load_from_disk("/Users/prateek/Downloads/data/spider/tokenized_spider_sql_valid.hf")
     print(f"Evaluating on {len(test_dataset)} samples")
-    test_processor = SpiderProcessor(test_dataset=test_dataset,
+    test_processor = MultiTabQAProcessor(test_dataset=test_dataset,
                                           batch_size=batch_size,
                                           decoder_max_length=1024,
                                           tokenizer=tokenizer,
                                           decoder_start_token_id=config.decoder_start_token_id,
-                                          is_test=True)
+                                          is_test=True,
+                                          device=device)
 elif dataset.lower() == "spider_nq":
     print('Loading bart-base tokenized test dataset for Spider Natural Questions')
-    tokenizer = AutoTokenizer.from_pretrained("facebook/bart-base")
     config = AutoConfig.from_pretrained(pretrained_model_name)
-    test_dataset = load_from_disk("data/spider/tokenized_spider_nq_valid_with_answer.hf")
+    test_dataset = load_from_disk("/Users/prateek/Downloads/data/spider/tokenized_spider_nq_valid_with_answer.hf")['train']
     print(f"Evaluating on {len(test_dataset)} samples")
-    test_processor = SpiderProcessor(test_dataset=test_dataset,
+    test_processor = MultiTabQAProcessor(test_dataset=test_dataset,
                                           batch_size=batch_size,
                                           decoder_max_length=1024,
                                           tokenizer=tokenizer,
                                           decoder_start_token_id=config.decoder_start_token_id,
-                                          is_test=True)
+                                          is_test=True,
+                                          device=device)
 
 elif dataset.lower() in "atis_test":
-    tokenizer = AutoTokenizer.from_pretrained("facebook/bart-base") 
     config = AutoConfig.from_pretrained(pretrained_model_name)
-    test_dataset = load_from_disk("data/atis/atis_nq_test_with_answer.hf")
-    test_processor = SpiderProcessor(test_dataset=test_dataset,
+    test_dataset = load_from_disk("/Users/prateek/Downloads/data/atis/tokenized_atis_nq_test_with_answer.hf")['train']
+    test_processor = MultiTabQAProcessor(test_dataset=test_dataset,
                                           batch_size=batch_size,
                                           decoder_max_length=1024,
                                           tokenizer=tokenizer,
                                           decoder_start_token_id=config.decoder_start_token_id,
-                                          is_test=True)
+                                          is_test=True,
+                                          device=device)
 elif dataset.lower() in "geo_test":
-    tokenizer = AutoTokenizer.from_pretrained("facebook/bart-base") 
     config = AutoConfig.from_pretrained(pretrained_model_name)
-    test_dataset = load_from_disk("data/geoquery/geoquery_nq_test_with_answer.hf"")
-    test_processor = SpiderProcessor(test_dataset=test_dataset,
+    test_dataset = load_from_disk("/Users/prateek/Downloads/data/geoquery/tokenized_geo_nq_test_with_answer.hf")['train']
+    test_processor = MultiTabQAProcessor(test_dataset=test_dataset,
                                           batch_size=batch_size,
                                           decoder_max_length=1024,
                                           tokenizer=tokenizer,
                                           decoder_start_token_id=config.decoder_start_token_id,
-                                          is_test=True)
+                                          is_test=True,
+                                          device=device)
 
 
 total_columns_in_dataset = 0
@@ -139,9 +119,8 @@ print('Starting Inference')
 predictions, references =[],[]
 for i, batch in enumerate(test_processor.test_generator):
     batch_sz = len(batch["input_ids"])
-    question = [tokenizer.decode(samp.to("cuda"), skip_special_tokens=True, clean_up_tokenizatimodon_spaces=False) for
-                samp in batch["input_ids"]]
-    prediction = model.generate(batch["input_ids"].to("cuda"), decoder_start_token_id=config.decoder_start_token_id,
+    question = tokenizer.batch_decode(batch["input_ids"].to(device), skip_special_tokens=True, clean_up_tokenizatimodon_spaces=False)
+    prediction = model.generate(batch["input_ids"].to(device), decoder_start_token_id=config.decoder_start_token_id,
                                 eos_token_id=model.config.eos_token_id,
                                 length_penalty=0.5, num_beams=5, return_dict_in_generate=True,
                                 output_scores=True)
@@ -195,4 +174,3 @@ cell_recall = total_correct_cells / total_cells_in_dataset
 print(f"cell_precision {cell_precision}")
 print(f"cell_recall {cell_recall}")
 print(f"cell F1 {(2*cell_precision*cell_recall)/(cell_precision+cell_recall)}")
-
