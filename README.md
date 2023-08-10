@@ -107,12 +107,20 @@ Atis |tapex-base | 72.20 | 57.07† | 57.69 | 55.08 | 72.20† | 72.20 | 72.20 |
 
 Please cite our work if you use our code or dataset:
 ```
-@misc{pal2023multitabqa,
-      title={MultiTabQA: Generating Tabular Answers for Multi-Table Question Answering}, 
-      author={Vaishali Pal and Andrew Yates and Evangelos Kanoulas and Maarten de Rijke},
-      year={2023},
-      eprint={2305.12820},
-      archivePrefix={arXiv},
-      primaryClass={cs.CL}
+@inproceedings{pal-etal-2023-multitabqa,
+    title = "{M}ulti{T}ab{QA}: Generating Tabular Answers for Multi-Table Question Answering",
+    author = "Pal, Vaishali  and
+      Yates, Andrew  and
+      Kanoulas, Evangelos  and
+      de Rijke, Maarten",
+    booktitle = "Proceedings of the 61st Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers)",
+    month = jul,
+    year = "2023",
+    address = "Toronto, Canada",
+    publisher = "Association for Computational Linguistics",
+    url = "https://aclanthology.org/2023.acl-long.348",
+    doi = "10.18653/v1/2023.acl-long.348",
+    pages = "6322--6334",
+    abstract = "Recent advances in tabular question answering (QA) with large language models are constrained in their coverage and only answer questions over a single table. However, real-world queries are complex in nature, often over multiple tables in a relational database or web page. Single table questions do not involve common table operations such as set operations, Cartesian products (joins), or nested queries. Furthermore, multi-table operations often result in a tabular output, which necessitates table generation capabilities of tabular QA models. To fill this gap, we propose a new task of answering questions over multiple tables. Our model, MultiTabQA, not only answers questions over multiple tables, but also generalizes to generate tabular answers. To enable effective training, we build a pre-training dataset comprising of 132,645 SQL queries and tabular answers. Further, we evaluate the generated tables by introducing table-specific metrics of varying strictness assessing various levels of granularity of the table structure. MultiTabQA outperforms state-of-the-art single table QA models adapted to a multi-table QA setting by finetuning on three datasets: Spider, Atis and GeoQuery.",
 }
 ```
