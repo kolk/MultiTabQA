@@ -14,12 +14,7 @@ data.txt: contains url to download all data. The zip file contains Tapex single-
     + 'source': flattened input sequence comprising of natural question and context input tables as concatenated string
     + 'target': flattened target table
 
-Loading pretraining Spider MultiTabQA dataset (stage 2):
-```
-from datasets import load_from_disk, load_dataset
-```
-
-Loading Spider pretraining dataset (stage 2) and MultiTabQA pretraining dataset (stage 3: Synthetic SQL):
+Loading MultiTabQA pretraining data: Spider pretraining dataset (stage 2) and MultiTabQA pretraining dataset (stage 3: Synthetic SQL):
 ```
 from datasets import load_dataset, concatenate_datasets
 spider_pretraining = load_dataset("vaishali/spider-tableQA-pretraining")
