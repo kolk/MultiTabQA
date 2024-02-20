@@ -16,11 +16,12 @@ Datasets present in data directory:
     + 'source': flattened input sequence comprising of natural question and context input tables as concatenated string
     + 'target': flattened target table
     
-Loading the Spider dataset:
+Loading the fine-tuning MultiTabQA datasets:
  ```
- from datasets import load_from_disk
- spider_natural_questions_data = load_from_disk(f"data/spider/tokenized_spider_nq_train_with_answer.hf")["train"]
- spider_sql_query_data = load_from_disk(f"data/spider/tokenized_spider_sql_train.hf")
+ from datasets import load_from_disk, load_dataset
+ spider_tableQA = load_dataset("vaishali/spider-tableQA")
+ atis_tableQA = load_dataset("vaishali/atis-tableQA")
+ geoQuery_tableQA = load_dataset("vaishali/geoQuery-tableQA")
  ```
 **Model Architecture**
 
