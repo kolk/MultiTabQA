@@ -1,1 +1,10 @@
-All datasets can be downloaded from: https://amsuni-my.sharepoint.com/:u:/g/personal/v_pal_uva_nl/ETD5Y1R9jQhPvuXws_hFaEoBSiuHhJ55p6JmFbiRnHwn8Q?e=fbOR0V
+Multi-Table QA datasets can be downloaded from huggingface datasets:
+
+from datasets import load_dataset, concatenate_datasets
+spider_pretraining = load_dataset("vaishali/spider-tableQA-pretraining")
+multitabqa_pretraining = load_dataset("vaishali/multitabqa_pretraining")
+multitab_pretraining_raw = concatenate_datasets([multitabqa_pretraining, spider_pretraining])
+multitab_pretraining = multitab_pretraining_raw.map(tokenize_sample)
+
+
+All datasets can be also be downloaded from: https://amsuni-my.sharepoint.com/:u:/g/personal/v_pal_uva_nl/ETD5Y1R9jQhPvuXws_hFaEoBSiuHhJ55p6JmFbiRnHwn8Q?e=fbOR0V
