@@ -19,8 +19,10 @@ Loading MultiTabQA pretraining data: Spider pretraining dataset (stage 2) and Mu
 from datasets import load_dataset, concatenate_datasets
 spider_pretraining = load_dataset("vaishali/spider-tableQA-pretraining")
 multitabqa_pretraining = load_dataset("vaishali/multitabqa_pretraining")
-multitab_pretraining_raw = concatenate_datasets([multitabqa_pretraining, spider_pretraining])
-multitab_pretraining = multitab_pretraining_raw.map(tokenize_sample)
+multitab_pretraining_raw_train = concatenate_datasets([multitabqa_pretraining["train"], spider_pretraining["train"]])
+multitab_pretraining_raw_validation = concatenate_datasets([multitabqa_pretraining["validation"], spider_pretraining["validation"]])
+multitab_pretraining_train_tokenized = multitab_pretraining_raw_train.map(tokenize_sample)
+multitab_pretraining_validation_tokenized = multitab_pretraining_raw_validation.map(tokenize_sample)
 ```
 Loading the fine-tuning MultiTabQA datasets:
  ```
